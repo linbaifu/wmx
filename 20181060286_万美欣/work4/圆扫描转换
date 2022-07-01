@@ -1,0 +1,77 @@
+#include <stdlib.h>
+#include<windows.h>
+#include<GL\glut.h>
+#include <math.h>
+
+void init (void)
+{
+    glClearColor(1.0, 1.0,1.0, 0.0);  // 指定清空颜色（背景色）为白色
+    glMatrixMode(GL_PROJECTION);//Set projection parameters
+    gluOrtho2D (0.0, 400.0, 0.0, 400.0);   //指定二维坐标系中被显示的区域
+}
+
+void drawPixel(GLint x,  GLint y)
+ {
+     glBegin(GL_POINTS);
+     glVertex2i(x, y);
+     glEnd();
+}
+
+inline int round(const float a)
+{
+    return int(a+0.5);
+}
+
+void drawEightPoints(int xc,int yc,int addx,int addy)
+{
+    drawPixel(xc+addx, yc+addy);
+    drawPixel(xc-addx, yc+addy);
+    drawPixel(xc+addx, yc-addy);
+    drawPixel(xc-addx, yc-addy);
+    drawPixel(xc+addy, yc+addx);
+    drawPixel(xc-addy, yc+addx);
+    drawPixel(xc+addy, yc-addx);
+    drawPixel(xc-addy, yc-addx);
+}
+void drawCircle(int xc,int yc,int r)
+{
+    int p,addx,addy;
+    p=1-r;
+    addx=0;
+    addy=r;
+    drawEightPoints(xc, yc, addx, addy);
+    while(addx<addy){
+        addx++;
+        if(p<0){
+            p+=2*addx+1;
+        }
+        else{
+            addy--;
+            p+=2*(addx-addy)+1;
+        }
+        drawEightPoints(xc, yc, addx, addy);
+    }
+}
+
+
+ void displaydrawCircle(void)
+ {
+    glClear (GL_COLOR_BUFFER_BIT);  // 清空显示窗口
+    glColor3f (0.0,0.0,1.0);      // 指定前景色（当前绘制颜色）为蓝色
+    drawCircle(200,200,100);
+    glFlush ( );     // 使绘制立即反映到屏幕上
+ }
+
+int main (int argc, char** argv)
+{
+    glutInit (&argc, argv);                         // 初始 GLUT.
+    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);   //设定显示模式
+    glutInitWindowPosition (100, 100);   // 设定窗口位置
+    glutInitWindowSize (400, 400);      // 设定窗口大小
+    glutCreateWindow ("An Example OpenGL Program"); // 用前面指定参数创建窗口，并定义窗口名称
+
+    init ( );                            // 进行一些初始化工作
+    glutDisplayFunc (displaydrawCircle);       // 指定绘制的回调函数
+    glutMainLoop ( );          // 进入无穷循环，等待事件处理
+    return 0;
+}
