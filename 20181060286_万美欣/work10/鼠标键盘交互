@@ -1,0 +1,312 @@
+#include <windows.h>
+#include <GL/glut.h>
+#include <iostream>
+#include <stdio.h>
+using namespace std;
+
+double WINHEIGHT = 0,WINWIDTH = 0;
+bool FirstPointHadDraw = false, LineHadDraw = false;
+int x0 = 0, y0 = 0, xEnd = 0, yEnd = 0;
+double moveSpeed = 3;
+
+void init();
+void MyIdle();
+void MyReshape(int w, int h);
+
+void display(void);
+void drawLine(int x0, int y0,int xEnd,int yEnd);
+void setpixel(int x, int y);
+
+void MyMouse(int button, int state, int x, int y);
+void MyMouseMotion(int x,int y);
+void MyKeyboard(unsigned char key, int x, int y);
+void MySpecialKey(int key, int x, int y);
+
+void MyCreateMenu();
+void MajorMenu(int value);
+void colorMenu(int value);
+void linewidthMenu(int value);
+void moveSpeedMenu(int value);
+
+int main(int argc, char** argv)
+{
+    glutInit(&argc,argv);
+    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(500,500);
+    glutInitWindowPosition(500,300);
+    glutCreateWindow("鼠标、键盘方式对图元进行交互操作");
+
+    init();
+    MyCreateMenu();
+    glutReshapeFunc (MyReshape);
+    //glutIdleFunc(MyIdle);
+
+    glutDisplayFunc(display);
+    glutMouseFunc (MyMouse);
+    glutMotionFunc(MyMouseMotion);
+
+    glutKeyboardFunc (MyKeyboard);
+    glutSpecialFunc(MySpecialKey);
+    glutMainLoop();
+}
+
+
+void display(void)
+{
+    cout<<"Displaying...    ";
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFlush();
+    cout<<"Displayed! "<<endl;
+}
+
+void MyCreateMenu()
+{
+    int majorMenuID = glutCreateMenu(MajorMenu);
+    int colorMenuID = glutCreateMenu(colorMenu);
+    int linewidthMenuID = glutCreateMenu(linewidthMenu);
+    int moveSpeedMenuID = glutCreateMenu(moveSpeedMenu);
+
+    glutSetMenu(majorMenuID);//设置当前菜单
+    glutAttachMenu(GLUT_RIGHT_BUTTON);//绑定到鼠标右键
+    glutAddSubMenu("颜色变化",colorMenuID);
+    glutAddSubMenu("粗细变化",linewidthMenuID);
+    glutAddSubMenu("移动速度变化",moveSpeedMenuID);
+
+    glutAddMenuEntry("清屏", 3);
+    glutAddMenuEntry("退出", 4);
+
+    glutSetMenu(colorMenuID);
+    glutAddMenuEntry("红色", 1);
+    glutAddMenuEntry("绿色", 2);
+    glutAddMenuEntry("蓝色", 3);
+
+    glutSetMenu(linewidthMenuID);
+    glutAddMenuEntry("设为1", 1);
+    glutAddMenuEntry("设为3", 2);
+    glutAddMenuEntry("设为5", 3);
+
+    glutSetMenu(moveSpeedMenuID);
+    glutAddMenuEntry("设为1", 1);
+    glutAddMenuEntry("设为3(默认)", 2);
+    glutAddMenuEntry("设为5", 3);
+
+    return;
+}
+
+void MajorMenu(int value)
+{
+    switch(value)
+    {
+    case 3:
+    {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glFlush();
+        break;
+    }
+
+    case 4:
+        exit(0);
+    }
+    return;
+}
+
+void colorMenu(int value)
+{
+    cout<<"颜色设置中.........."<<endl;
+    switch(value)
+    {
+    case 1:
+        glColor3f(1.0, 0.0, 0.0);
+        break;
+    case 2:
+        glColor3f(0.0, 1.0, 0.0);
+        break;
+    case 3:
+        glColor3f(0.0, 0.0, 1.0);
+        break;
+    }
+    drawLine(x0,y0,xEnd,yEnd);
+    return;
+}
+
+void linewidthMenu(int value)
+{
+    cout<< "线宽设置中.........."<<endl;
+    switch(value)
+    {
+    case 1:
+        glLineWidth(1);
+        break;
+    case 2:
+        glLineWidth(3);
+        break;
+    case 3:
+        glLineWidth(5);
+        break;
+    }
+    drawLine(x0,y0,xEnd,yEnd);
+    return;
+}
+
+void moveSpeedMenu(int value)
+{
+    cout<< "移动速度设置中.........."<<endl;
+    switch(value)
+    {
+    case 1:
+        moveSpeed = 1;
+        break;
+    case 2:
+        moveSpeed = 3;
+        break;
+    case 3:
+        moveSpeed = 5;
+        break;
+    }
+    return;
+}
+
+void MyMouse(int button, int state, int x, int y)
+{
+    if(button == GLUT_LEFT_BUTTON &&  state == GLUT_DOWN)
+    {
+        cout<<"左键被按下  ";
+        x0 = x;
+        y0 = WINHEIGHT - y;
+        setpixel(x0,y0);
+        FirstPointHadDraw = true;
+    }
+    if(button == GLUT_LEFT_BUTTON &&state == GLUT_UP)
+    {
+        cout<<"左键被释放  "<<endl;
+        LineHadDraw = true;
+    }
+}
+
+//移动事件  键被按下的同时发生移动
+void MyMouseMotion(int x,int y)
+{
+    cout<<"鼠标移动中...    ";
+    if(true ==FirstPointHadDraw)
+    {
+        xEnd = x;
+        yEnd = WINHEIGHT - y;
+        drawLine(x0,y0,xEnd,yEnd);
+    }
+    return;
+}
+
+
+void drawLine(int x, int y,int x2,int y2)
+{
+    cout<<"准备画线:"<< x0<<" "<< y0<<" " << xEnd<<" "<< yEnd<<" "<<endl;
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_LINES);
+    glVertex2f(x,y);
+    glVertex2f(x2,y2);
+    glEnd();
+
+    cout<<"画线完成 ";
+    glFlush();
+    return;
+}
+
+
+void MyKeyboard(unsigned char key, int x, int y)
+{
+    //27为ESC键
+    if(key==27)
+    {
+        exit(0);
+    }
+}
+
+
+void MySpecialKey(int key, int x, int y)
+{
+    glutGetModifiers();
+    switch(key)
+    {
+    case GLUT_KEY_UP:
+    {
+        y0 += moveSpeed;
+        yEnd += moveSpeed;
+        break;
+    }
+    case GLUT_KEY_DOWN:
+    {
+        y0 -= moveSpeed;
+        yEnd -= moveSpeed;
+        break;
+    }
+    case GLUT_KEY_LEFT:
+    {
+        x0 -= moveSpeed;
+        xEnd -= moveSpeed;
+        break;
+    }
+    case GLUT_KEY_RIGHT:
+    {
+        x0 += moveSpeed;
+        xEnd += moveSpeed;
+        break;
+    }
+    }
+
+    drawLine(x0,y0,xEnd,yEnd);
+    return;
+}
+
+
+//返回调整大小后的窗口大小  w，h
+void MyReshape(GLsizei w, GLsizei h)
+{
+    //view port 左下角为0,0
+    //窗口在高度方向变长，截图也要在该方向上拉长相同比例
+    //宽度方向拉长，截图也要在该方向上拉长相同比例
+    cout<<"Reshaping...       "<<w<<"  "<<h;
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    if(w<=h)
+        gluOrtho2D(0,500,    0,500 * h/w);
+    else
+        gluOrtho2D(0,500 * w/h,  0,500);
+    glViewport(0,0,w,h);
+
+    WINWIDTH = w;
+    WINHEIGHT = h;
+    cout<<"Reshaped"<<endl;
+}
+
+void setpixel(int x, int y)
+{
+    glBegin(GL_POINTS);
+    glVertex2i(x,y);
+    glEnd();
+    return;
+}
+
+void MyIdle()
+{
+    glutPostRedisplay();
+}
+
+void init()
+{
+    //反射任何光，为白色
+    //gluOrtho2D(left,  right,   bottom, top);
+    //glortho(x_min  x_max  y_min  y_max   near  top)
+
+    cout<<"Initing...    ";
+    glClearColor (1.0, 1.0, 1.0, 1.0);
+    glColor3f(0.0, 0.0, 0.0);
+    glPointSize(2.0);
+    glLineWidth(2.0);
+    glMatrixMode (GL_PROJECTION);
+    glLoadIdentity ();
+    glOrtho(0.0f, WINWIDTH, 0.0f, WINHEIGHT, 1.0, -1.0);
+
+    cout<<"Inited!"<<endl;
+}
