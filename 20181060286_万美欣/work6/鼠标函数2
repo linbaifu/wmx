@@ -1,0 +1,136 @@
+#include<windows.h>
+#include<gl/glut.h>
+#include<iostream>
+#include<stdio.h>
+#include<cmath>
+int xc,yc,r;
+int winwidth=800,winheight=640;//窗口长宽
+//声明一个类
+class screenPt
+{
+public:
+	void setCoords(GLint xCoordValue,GLint yCoordValue){
+		x=xCoordValue;
+		y=yCoordValue;
+	}
+	screenPt();
+	GLint getx() const{
+		return x;
+	}
+	GLint gety() const{
+		return y;
+	}
+	void incrementx(){
+		x++;
+	}
+	void decrementy(){
+		y--;
+	}
+
+private:
+	GLint x,y;
+};
+
+void circlePlotPoints(GLint,GLint,screenPt);
+screenPt::screenPt()
+{
+	x=y=0;
+}
+//画点
+void setPixel(GLint xCoord,GLint yCoord){
+	glBegin(GL_POINTS);
+	glVertex2i(xCoord,yCoord);
+	glEnd();
+}
+/*中心画圆法*/
+void circleMidpoint(GLint xc,GLint yc,GLint radius){
+	glClear(GL_COLOR_BUFFER_BIT);//清除窗口显示内容
+
+	setPixel(xc,yc);//画圆心
+	screenPt circpt;//创建一个对象
+	GLint p=1-radius;//
+	circpt.setCoords(0,radius);
+
+	circlePlotPoints(xc,yc,circpt);
+
+	while(circpt.getx()<circpt.gety()){
+		circpt.incrementx();
+		if(p<0){
+			p+=2*circpt.getx()+1;
+		}else{
+			circpt.decrementy();
+			p+=2*(circpt.getx()-circpt.gety())+1;
+		}
+		circlePlotPoints(xc,yc,circpt);
+	}
+
+}
+
+void circlePlotPoints(GLint xc,GLint yc,screenPt circpt){
+	setPixel(xc+circpt.getx(),yc+circpt.gety());
+	setPixel(xc-circpt.getx(),yc+circpt.gety());
+	setPixel(xc+circpt.getx(),yc-circpt.gety());
+	setPixel(xc-circpt.getx(),yc-circpt.gety());
+	setPixel(xc+circpt.gety(),yc+circpt.getx());
+	setPixel(xc-circpt.gety(),yc+circpt.getx());
+	setPixel(xc+circpt.gety(),yc-circpt.getx());
+	setPixel(xc-circpt.gety(),yc-circpt.getx());
+}
+
+void init(){
+	glClearColor(1.0,1.0,1.0,1.0);//设置绘制窗口颜色为白色
+	glClear(GL_COLOR_BUFFER_BIT);//清除窗口显示内容
+	/*设置为投影类型模式和其他观察参数*/
+	glPointSize(3.0f);
+	glColor3f(1.0,0.0,0.0);//设置颜色为红
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0,winwidth,winheight,0);
+}
+
+void DrawCircle(){
+	circleMidpoint(xc,yc,r);
+	glFlush();
+}
+
+//鼠标拖动
+void dragmouse(int x,int y){
+		r=sqrt((y-yc)*(y-yc)+(x-xc)*(x-xc));
+		printf("%d %d %d\n",xc,yc,r);
+		DrawCircle();
+		glFlush();
+}
+
+//鼠标监听，画点
+void mymouse(int button,int state,int x,int y){
+	if(button==GLUT_LEFT_BUTTON && state==GLUT_UP){
+		r=sqrt((y-yc)*(y-yc)+(x-xc)*(x-xc));
+		printf("%d %d %d\n",xc,yc,r);
+		DrawCircle();
+		glFlush();
+
+	}
+	if(button==GLUT_LEFT_BUTTON && state==GLUT_DOWN){
+		xc=x;
+		yc=y;
+
+
+	}
+
+}
+
+int main(int argc,char** argv){
+	glutInit(&argc,argv);//初始化
+//	scanf("%d%d%d",&xc,&yc,&r);
+	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);//设置绘制模式
+	glutInitWindowPosition(500,300);
+	glutInitWindowSize(winwidth,winheight);
+	glutCreateWindow("画圆");//创建窗口
+	init();
+
+	glutDisplayFunc(DrawCircle);
+	glutMouseFunc(mymouse);//鼠标监听回调函数
+	glutMotionFunc(dragmouse);//鼠标拖动
+	glutMainLoop();
+
+}
