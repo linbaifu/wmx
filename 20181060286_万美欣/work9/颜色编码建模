@@ -1,0 +1,67 @@
+#include<windows.h>
+#include<GL/glut.h>
+#include<iostream>
+using namespace std;
+void init(){
+	//glClearColor(GLfloat red,GLfloat green,GLfloat blue,GLfloat alpha)
+	//设置背景颜色，只起到set作用不起Clear作用，alpha是透明度
+	glClearColor(0.0f,0.0f,0.0f,0.0);
+	glShadeModel(GL_SMOOTH);//两点之间的颜色插值，均匀插值
+}
+void triangle(){
+
+	glBegin(GL_TRIANGLES);
+	glColor3f(1.0f,0.0f,0.0f);glVertex2f(5.0f,5.0f);
+	glColor3f(0.0f,1.0f,0.0f);glVertex2f(25.0f,5.0f);
+	glColor3f(0.0f,0.0f,1.0f);glVertex2f(5.0f,25.0f);
+	glEnd();
+
+	glBegin(GL_TRIANGLES);
+	glColor3f(1.0f,1.0f,0.0f);glVertex2f(26.0f,25.0f);
+	glColor3f(0.0f,1.0f,1.0f);glVertex2f(26.0f,5.0f);
+	glColor3f(1.0f,0.0f,1.0f);glVertex2f(6.0f,25.0f);
+	glEnd();
+}
+void display(){
+	//glClear ( ) 将缓存清除为预先的设置值
+	glClear(GL_COLOR_BUFFER_BIT);
+	triangle();
+	glFlush();
+	//用于强制刷新缓冲，保证绘图命令将被执行，而不是存储在缓冲区 [2]  中等待其他的OpenGL命令。
+}
+
+//reshape主要负责重置坐标系统和投影矩阵
+void reshape(int w,int h){
+	//—以像素为单位，指定了视口的左下角（在第一象限内，以（0，0）为原点的）位置。
+	//width，height————表示这个视口矩形的宽度和高度，根据窗口的实时变化重绘窗口。
+	glViewport(0,0,(GLsizei)w,(GLsizei)h);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	if(w<=h){
+		gluOrtho2D(0.0,30.0,0.0,30.0*(GLfloat)h/(GLfloat)w);
+		//gluOrtho2D(left,right,bottom,top)
+		//gluOrtho2D定义剪裁面，通过正交投影，
+		//把景物（模型）按照1:1的比例绘制到一个剪裁面上，
+		//相当于对世界坐标窗口的一个截取。
+	}else{
+		gluOrtho2D(0.0,30.0*(GLfloat)h/(GLfloat)w,0.0,30.0);
+	}
+	glMatrixMode(GL_MODELVIEW);
+}
+int main(int argc, char** argv)
+{
+	glutInit(&argc,argv);
+	glutInitDisplayMode(GLUT_RGB|GLUT_SINGLE);
+	glutInitWindowSize(500,500);
+
+	glutInitWindowPosition(100,100);
+
+	glutCreateWindow("opengl颜色函数实例");
+	init();
+	glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
+
+	glutMainLoop();
+	return 0;
+}
