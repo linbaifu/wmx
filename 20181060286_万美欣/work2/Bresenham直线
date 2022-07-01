@@ -1,0 +1,79 @@
+#include<windows.h>
+#include <GL/glut.h>
+
+void putpixel(int x, int y) {//画点的方法
+    glColor3f(0.0, 1.0, 1.0);//画笔颜色
+    glPointSize(1.0);//画笔粗细
+    glBegin(GL_POINTS);
+    glVertex2f(x, y);//画点
+    glEnd();
+}
+
+void Bresenham_line(int x0, int y0, int x1, int y1) {
+    int dx, dy, h, a, b, x, y, flag, t;
+    dx = abs(x1 - x0);
+    dy = abs(y1 - y0);
+    if (x1 > x0) a = 1; else a = -1;
+    if (y1 > y0) b = 1; else b = -1;
+    x = x0;
+    y = y0;
+    if (dx >= dy) {
+        //0< |k| <=1
+        flag = 0;
+    } else {
+        //|k|>1,交换dx，dy
+        t = dx;
+        dx = dy;
+        dy = t;
+        flag = 1;
+    }
+    h = 2 * dy - dx;
+    for (int i = 1; i <= dx; ++i) {
+        putpixel(x, y);
+        if (h >= 0) {
+            if (flag == 0) y = y + b;
+            else x = x + a;
+            h = h - 2 * dx;
+        }
+        if (flag == 0) x = x + a;
+        else y = y + b;
+        h = h + 2 * dy;
+
+    }
+
+}
+
+
+void display(void) {
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, 500, 500);
+    //坐标起点及终点
+    Bresenham_line(0, 0, 500, 0);
+    Bresenham_line(0, 0, 0, 500);
+    Bresenham_line(0, 500, 500, 500);
+    Bresenham_line(500, 0, 500, 500);
+    Bresenham_line(0, 0, 500, 500);//k=1
+    Bresenham_line(0, 0, 500, 250);
+    Bresenham_line(0, 250, 500, 500);
+    Bresenham_line(0, 500, 500, 0);//k=-1
+    Bresenham_line(0, 250, 500, 0);
+    Bresenham_line(0, 500, 500, 250);
+    Bresenham_line(250, 0, 250, 500);//k=0
+    Bresenham_line(0, 250, 500, 250);//k不存在
+
+    glFlush();
+}
+
+int main(int argc, char **argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RED);
+    glutInitWindowSize(500, 500);
+    glutInitWindowPosition(200, 200);
+    glutCreateWindow("Bresenham_line");
+    glutDisplayFunc(display);
+    gluOrtho2D(0.0, 500.0, 0.0, 500.0);
+    glutMainLoop();
+    return 0;
+
+}
